@@ -82,11 +82,60 @@ public class Main {
         Barrel[] barrelsArray = barrels.toArray(new Barrel[0]);
         Barrels monitor = new Barrels(barrelsArray);
 
+        System.out.println("Estado inicial de los barriles");
         for (Barrel barrel : barrelsArray) {
             System.out.println("ID: " + barrel.getId() +
                     ", Cantidad: " + barrel.getCurrentAmount() +
                     ", Capacidad: " + barrel.getCapacity());
         }
 
+        List<Thread> threads = new ArrayList<>();
+        int estudiantesValidos = 0;
+        
+        for (int i = 0; i < numStudents; i++) {
+            int edad = 16 + (i % 10);
+            int tickets = 5 + (i % 6);
+            if (edad >= 18 && tickets > 0) {
+                Student s = new Student("Estudiante " + (i + 1), edad, tickets, monitor);
+                threads.add(s);
+                s.start();
+                estudiantesValidos++;
+            } else {
+                System.out.println("Estudiante " + (i + 1) + " no es válido para participar. (Edad: " + edad + ", Tickets: " + tickets + ")");
+            }
+        }
+        
+        if (estudiantesValidos == 0) {
+            System.out.println("\n No hay estudiantes válidos para la fiesta. Se cancela el evento.");
+            return;
+        }
+        
+
+        for (int i = 0; i < numProviders; i++) {
+            Provider p = new Provider(monitor, i + 1); // ID del proveedor (empezando desde 1)
+            threads.add(p);
+            p.start();
+        }
+        
+
+        for (Thread t : threads) {
+            if (t instanceof Student) {
+                try {
+                    t.join();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            } else {
+                t.interrupt();
+            }
+        }
+
+        System.out.println("\nFiesta finalizada");
+        for (Barrel barrel : barrelsArray) {
+            System.out.println("ID: " + barrel.getId() +
+                    ", Cantidad final: " + barrel.getCurrentAmount());
+        }
+
+        System.out.println("Total de cerveza perdida por desbordamiento: " + monitor.getLostBeer() + " unidades.");
     }
 }
