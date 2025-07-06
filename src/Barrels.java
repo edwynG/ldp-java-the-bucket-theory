@@ -3,6 +3,7 @@ public class Barrels {
     private Barrel[] barrels;
     private boolean flagRecharge = false;
     private boolean flagWithdraw = false;
+    private int lostBeer = 0;
 
     public Barrels(Barrel[] barrels) {
         if (barrels == null || barrels.length != 3) {
@@ -34,8 +35,8 @@ public class Barrels {
     }
 
     public synchronized void rechargeBarrel(String barrelId, int amount) {
-        if (barrelId.equalsIgnoreCase("B") ) {
-          return; // B no se puede recargar directamente
+        if (barrelId.equalsIgnoreCase("B")) {
+            return; // B no se puede recargar directamente
         }
 
         while (flagRecharge) {
@@ -70,16 +71,44 @@ public class Barrels {
                         int minIdx = barrels[idxA].getCurrentAmount() <= barrels[idxC].getCurrentAmount() ? idxA : idxC;
                         Utils.printMessage("Desbordamiento en B, transfiriendo " + overflowB + " unidades a "
                                 + barrels[minIdx].getId() + ".");
+                        int beforeMin = barrels[minIdx].getCurrentAmount();
                         barrels[minIdx].recharge(overflowB);
+                        int afterMin = barrels[minIdx].getCurrentAmount();
+                        int lost = (beforeMin + overflowB) - afterMin;
+                        if (lost > 0) {
+                            lostBeer += lost;
+                            Utils.printMessage("Cerveza perdida: " + lost + " unidades.");
+                        }
                     }
                 }
-                Utils.sleepSeconds(3 + (int) (Math.random() * 3)); // Simula un tiempo de recarga aleatorio entre 3 y 5
-                                                                   // segundos
+                Utils.sleepSeconds(3 + (int) (Math.random() * 3)); // Simula un tiempo de recarga aleatorio entre 3 y 5 segundos
                 flagRecharge = false; // Indica que ya no se está recargando
                 notify();
                 return;
             }
         }
         throw new IllegalArgumentException("Barril no encontrado: " + barrelId);
+    }
+
+    public synchronized Barrel getBarrel(String barrelId) {
+        for (Barrel barrel : barrels) {
+            if (barrel.getId().equals(barrelId)) {
+                return barrel;
+            }
+        }
+        throw new IllegalArgumentException("Barril no encontrado: " + barrelId);
+    }
+
+    public synchronized boolean hasAvailableCapacity() {
+        for (Barrel barrel : barrels) {
+            if (barrel.getAvailableCapacity() > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public synchronized int getLostBeer() {
+        return lostBeer;
     }
 }

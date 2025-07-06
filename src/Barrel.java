@@ -40,6 +40,11 @@ public class Barrel {
         return currentAmount;
     }
 
+    public synchronized int getAvailableCapacity(){
+        return capacity - currentAmount;
+    }
+
+
     public String getId() {
         return id;
     }

@@ -3,7 +3,7 @@ public class Utils {
         for (char c : message.toCharArray()) {
             System.out.print(c);
             try {
-                Thread.sleep(80); // Simulate some delay
+                Thread.sleep(40); // Simulate some delay
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt(); // Restore interrupted status
             }
