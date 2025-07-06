@@ -1,15 +1,16 @@
 //Consumidor
-public class Student extends Thread {
+class Student extends Thread {
     private final String nombre;
     private final int edad;
     private int tickets;
     private final Barrels barrels;
     private final Random random = new Random();
+    private static final String[] BARREL_IDS = {"A", "B", "C"};
 
     public Student(String nombre, int edad, int tickets, Barrels barrels) {
         this.nombre = nombre;
         this.edad = edad;
-        this.tickets = Math.min(tickets, 10); // Máximo 10 tickets
+        this.tickets = Math.min(tickets, 10);
         this.barrels = barrels;
     }
 
@@ -22,38 +23,21 @@ public class Student extends Thread {
 
         try {
             while (tickets > 0) {
-                // Pedir entre 1 y 10 cervezas, pero no más de los tickets disponibles
-                int requestedAmount = random.nextInt(10) + 1; 
-                requestedAmount = Math.min(requestedAmount, tickets); // No exceder tickets
-                
-                int served = 0;
-                
-                while (served < requestedAmount) {
-                    int remaining = requestedAmount - served;
-                    int obtained = barrels.withdraw(remaining);//
-                    
-                    if (obtained > 0) {
-                        served += obtained;
-                        tickets -= obtained;
-                        System.out.println(nombre + " retiró " + obtained + " cervezas. Tickets restantes: " + tickets);
-                    }
-                    
-                    if (served < requestedAmount) {
-                        synchronized (barrels) {
-                            barrels.wait();
-                        }
+                String barrelId = BARREL_IDS[random.nextInt(BARREL_IDS.length)];
+                int obtained = barrels.withdrawFromBarrel(barrelId, 1);
+                if (obtained > 0) {
+                    tickets -= obtained;
+                    System.out.println(nombre + " retiró " + obtained + " cerveza(s) del barril " + barrelId + ". Tickets restantes: " + tickets);
+                } else {
+                    synchronized (barrels) {
+                        barrels.wait();
                     }
                 }
-                
-                Thread.sleep(random.nextInt(1000)); // Tiempo entre pedidos
+                Thread.sleep(500 + random.nextInt(500));
             }
-            System.out.println(nombre + " se retira de la fiesta por no tener tickets");
+            System.out.println(nombre + " se retira sin tickets.");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-    }
-    
-    public int getTickets() {
-        return tickets;
     }
 }
