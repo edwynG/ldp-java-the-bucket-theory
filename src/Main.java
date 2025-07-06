@@ -85,13 +85,26 @@ public class Main {
         }
 
         List<Thread> threads = new ArrayList<>();
+        int estudiantesValidos = 0;
+        
         for (int i = 0; i < numStudents; i++) {
             int edad = 16 + (i % 10);
             int tickets = 5 + (i % 6);
-            Student s = new Student("Estudiante " + (i + 1), edad, tickets, monitor);
-            threads.add(s);
-            s.start();
+            if (edad >= 18 && tickets > 0) {
+                Student s = new Student("Estudiante " + (i + 1), edad, tickets, monitor);
+                threads.add(s);
+                s.start();
+                estudiantesValidos++;
+            } else {
+                System.out.println("Estudiante " + (i + 1) + " no es válido para participar. (Edad: " + edad + ", Tickets: " + tickets + ")");
+            }
         }
+        
+        if (estudiantesValidos == 0) {
+            System.out.println("\n No hay estudiantes válidos para la fiesta. Se cancela el evento.");
+            return;
+        }
+        
 
         for (int i = 0; i < numProviders; i++) {
             Provider p = new Provider(monitor, i + 1); // ID del proveedor (empezando desde 1)
