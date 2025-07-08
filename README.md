@@ -36,6 +36,41 @@ Java-the-bucket-theory/
 > [!Note]
 > **make** es la herramienta que se utiliza para ejecutar archivos **makefile**. En windows este viene junto con la instalación de **C/C++**. Y si estas en linux este viene junto con el entorno **Unix**.
 
+### Analisis
+
+Durante la fiesta de fin de semestre, se organizará una "cervezada" en la que los estudiantes reutilizarán el sistema de tres barriles comunicantes desarrollado en proyectos anteriores. Esta vez, se requiere una solución concurrente en Java, utilizando monitores e hilos (Threads) para coordinar adecuadamente el acceso a los barriles y simular de forma realista el consumo y la reposición de cerveza.
+
+### Procesos Involucrados
+Estudiantes (Consumidores): Hilos que intentan consumir cerveza de los barriles, de acuerdo a la cantidad de tickets que poseen.
+
+Proveedores (Productores): Hilos encargados de recargar los barriles cuando haya espacio disponible.
+
+### Recursos Críticos
+Barriles de cerveza A, B y C: Cada barril tiene una capacidad máxima y una cantidad actual de cerveza. Al ser accedidos por múltiples hilos de forma concurrente, su manipulación debe ser protegida mediante sincronización para evitar condiciones de carrera.
+
+### Operaciones Críticas
+Retiro de cerveza: Los estudiantes deben verificar la cantidad disponible y retirar cerveza de un barril de forma atómica. Si la cantidad requerida no está disponible, deben esperar a que el barril sea recargado.
+
+Recarga de cerveza: Los proveedores deben agregar cerveza solo si hay espacio en el barril. En caso de que se intente recargar un barril lleno, se debe esperar. Si ocurre un desborde, este debe ser registrado y reportado al final de la ejecución.
+
+### Condiciones de Sincronización
+Espera por recarga: Si un estudiante desea más cerveza de la que hay disponible, su hilo debe quedar bloqueado hasta que se recargue el barril.
+
+Espera por espacio: Si un proveedor intenta recargar un barril lleno, debe esperar hasta que se libere espacio (es decir, que algún estudiante haya consumido).
+
+Notificaciones: Cuando cambia el estado de un barril (ya sea por consumo o por recarga), se debe notificar a los hilos en espera para que reevalúen su condición.
+
+### Decisiones de diseño 
+Decisiones de Diseño
+
+-Se implementó un monitor Barrels que centraliza las operaciones sobre los barriles y maneja la sincronización de hilos.
+
+-Se agregaron flags de control (flagWithdraw, flagRecharge) para evitar conflictos entre operaciones simultáneas.
+
+-Los estudiantes se validan por edad (>= 18) y tickets (>0). Los inválidos son descartados.
+
+-Se maneja el desbordamiento según reglas específicas, y se reporta la cerveza perdida al final de la ejecución.
+
 ## Documentación
 ### Procesador de entrada
 ```{java}
