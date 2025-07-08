@@ -1,5 +1,4 @@
-// Monitor
-public class Barrels {
+class Barrels {
     private Barrel[] barrels;
     private boolean flagRecharge = false;
     private boolean flagWithdraw = false;
@@ -52,6 +51,8 @@ public class Barrels {
 
         }
         flagRecharge = true; // Indica que se está recargando
+        System.out.println(Thread.currentThread().getName() + " va a recargar " + amount + " unidades en " + barrelId);
+
         for (Barrel barrel : barrels) {
             if (barrel.getId().equals(barrelId)) {
                 int before = barrel.getCurrentAmount();

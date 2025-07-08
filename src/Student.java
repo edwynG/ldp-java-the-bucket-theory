@@ -11,17 +11,12 @@ class Student extends Thread {
     public Student(String nombre, int edad, int tickets, Barrels barrels) {
         this.nombre = nombre;
         this.edad = edad;
-        this.tickets = Math.min(tickets, 10); // Límite máximo de tickets
+        this.tickets = tickets;
         this.barrels = barrels;
     }
 
     @Override
     public void run() {
-        if (edad < 18) {
-            System.out.println(nombre + " es menor de edad. No puede consumir.");
-            return;
-        }
-
         try {
             while (tickets > 0) {
                 String barrelId = BARREL_IDS[random.nextInt(BARREL_IDS.length)];
@@ -32,7 +27,7 @@ class Student extends Thread {
 
                 if (obtained > 0) {
                     tickets -= obtained;
-                    System.out.println(nombre + " retiró " + obtained + " cerveza(s) del barril " + barrelId + ". Tickets restantes: " + tickets);
+                    System.out.println(nombre + " (Edad: " + edad + ") retiró " + obtained + " cerveza(s) del barril " + barrelId + ". Tickets restantes: " + tickets);
                 } else {
                     synchronized (barrels) {
                         barrels.wait(); // Espera si no pudo retirar nada
