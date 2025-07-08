@@ -135,6 +135,12 @@ public class Main {
             System.exit(1);
 
         }
+        if (numProviders <= 0) {
+            System.err.println("El número de proveedores debe ser mayor a 0.");
+            System.exit(1);
+
+        }
+
         if (barrels.size() != 3) {
             System.err.println("Debe haber exactamente 3 barriles.");
             System.exit(1);

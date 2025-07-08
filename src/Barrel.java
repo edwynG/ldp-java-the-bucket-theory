@@ -11,6 +11,10 @@ public class Barrel {
             throw new IllegalArgumentException("Barril " + id + " - La capacidad del barril debe ser al menos 1");
         }
 
+        if (initialAmount < 0) {
+            throw new IllegalArgumentException("Barril " + id + " - La cantidad del barril debe ser un entero positivo");
+        }
+
         this.id = id;
         this.capacity = capacity;
         this.currentAmount = Math.max(initialAmount, 0);
