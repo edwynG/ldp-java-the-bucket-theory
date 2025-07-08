@@ -248,3 +248,144 @@ La clase ``Barrels`` gestiona un conjunto de tres barriles y controla el acceso 
 Por otro lado, el método ``rechargeBarrel`` se encarga de recargar un barril con una cantidad dada, excepto el barril "B", que no puede recargarse directamente. También es sincronizado y usa una bandera (``flagRecharge``) para evitar que múltiples recargas ocurran simultáneamente. Al recargar, si el barril se desborda (es decir, la cantidad recargada excede su capacidad), el exceso se transfiere al barril "B". Si "B" también se desborda, el sobrante se pasa al barril con menor cantidad entre "A" y "C". En caso de que aún haya exceso que no quepa en ninguno, se contabiliza como cerveza perdida. Este método también simula un tiempo de recarga aleatorio entre 3 y 5 segundos para reflejar el proceso real y notifica a otros hilos cuando termina, permitiendo que continúen sus operaciones.
 
 Los métodos restantes de la clase Barrels permiten consultar y gestionar el estado de los barriles de forma segura en entornos concurrentes: ``getBarrel`` busca y devuelve un barril específico por su identificador, lanzando un error si no existe; ``hasAvailableCapacity`` verifica si alguno de los barriles tiene espacio disponible para más contenido; y ``getLostBeer`` retorna la cantidad total de cerveza que se ha perdido debido a desbordamientos que no pudieron almacenarse. Todos estos métodos están sincronizados para asegurar que las operaciones sean consistentes y libres de conflictos cuando varios hilos acceden simultáneamente a los barriles.
+
+### Proceso - estudiantes
+````
+import java.util.Random;
+
+class Student extends Thread {
+    private final String nombre;
+    private final int edad;
+    private int tickets;
+    private final Barrels barrels;
+    private final Random random = new Random();
+    private static final String[] BARREL_IDS = {"A", "B", "C"};
+
+    public Student(String nombre, int edad, int tickets, Barrels barrels) {
+        this.nombre = nombre;
+        this.edad = edad;
+        this.tickets = tickets;
+        this.barrels = barrels;
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (tickets > 0) {
+                String barrelId = BARREL_IDS[random.nextInt(BARREL_IDS.length)];
+
+                int request = Math.min(tickets, 1 + random.nextInt(tickets)); // Pide entre 1 y los tickets restantes
+
+                int obtained = barrels.withdrawFromBarrel(barrelId, request);
+
+                if (obtained > 0) {
+                    tickets -= obtained;
+                    System.out.println(nombre + " (Edad: " + edad + ") retiró " + obtained + " cerveza(s) del barril " + barrelId + ". Tickets restantes: " + tickets);
+                } else {
+                    synchronized (barrels) {
+                        barrels.wait(); // Espera si no pudo retirar nada
+                    }
+                }
+
+                Thread.sleep(500 + random.nextInt(500)); // Simula el tiempo entre rondas
+            }
+
+            System.out.println(nombre + " se retira sin tickets.");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+}
+````
+La clase ``Student`` representa a un estudiante que participa en la simulación de una fiesta, en la cual puede retirar cerveza de barriles utilizando un número limitado de tickets. Esta clase extiende Thread, lo que permite que múltiples instancias se ejecuten de forma concurrente y autónoma dentro del sistema.
+
+Cada objeto ``Student`` tiene un nombre, una edad, un número inicial de tickets y una referencia al objeto Barrels que gestiona los barriles de cerveza. También utiliza una instancia de Random para introducir comportamientos aleatorios y una constante ``BARREL_IDS`` que contiene los identificadores de los barriles disponibles ("A", "B" y "C").
+
+El método run, que es el punto de entrada cuando se inicia el hilo, ejecuta un ciclo mientras el estudiante tenga tickets disponibles. En cada iteración:
+
+1. Elige aleatoriamente uno de los barriles para intentar retirar cerveza.
+
+2. Calcula una cantidad aleatoria de cerveza a pedir, siempre dentro del límite de sus tickets restantes.
+
+3. Llama al método ``withdrawFromBarrel`` del objeto ``Barrels`` para intentar retirar esa cantidad del barril seleccionado.
+
+4.Si logra obtener cerveza (obtained > 0), descuenta la cantidad obtenida de sus tickets y muestra un mensaje indicando la operación.
+
+5.Si no logra obtener nada, se sincroniza sobre el objeto barrels y entra en estado de espera (``wait``) hasta que otro hilo (por ejemplo, un proveedor que recargue) lo notifique, permitiéndole intentar de nuevo.
+
+Luego de cada intento exitoso o fallido, espera entre 0.5 y 1 segundo antes de volver a intentar, simulando el tiempo entre rondas en una fiesta.
+Cuando el estudiante ha usado todos sus tickets, imprime un mensaje indicando que se retira de la fiesta.
+Esta clase ilustra un comportamiento típico de consumidores en un entorno concurrente, donde varios hilos compiten por un recurso compartido. La combinación de wait y notify en el objeto Barrels permite una cooperación fluida entre los estudiantes y los productores (proveedores de cerveza) en la simulación, evitando el uso ineficiente de la CPU por espera activa.
+
+````
+class Provider extends Thread {
+    private final Barrels barrels;
+    private final Random random = new Random();
+
+    public Provider(Barrels barrels, int id) {
+        this.barrels = barrels;
+        setName("Proveedor " + id); 
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+                synchronized (barrels) {
+                    while (!barrels.hasAvailableCapacity()) {
+                        barrels.wait();
+
+                        // Si fue interrumpido durante la espera, salir inmediatamente
+                        if (Thread.currentThread().isInterrupted()) return;
+                    }
+
+                    List<String> targets = new ArrayList<>();
+                    if (barrels.getBarrel("A").getAvailableCapacity() > 0) targets.add("A");
+                    if (barrels.getBarrel("C").getAvailableCapacity() > 0) targets.add("C");
+
+                    if (!targets.isEmpty()) {
+                        if (Thread.currentThread().isInterrupted()) return;
+
+                        String idBarrel = targets.get(random.nextInt(targets.size()));
+                        int amount = 5 + random.nextInt(6);
+
+                        System.out.println(getName() + " va a recargar " + amount + " unidades en " + idBarrel);
+
+                        barrels.rechargeBarrel(idBarrel, amount);
+                    }
+
+                    barrels.notifyAll();
+                }
+
+                Thread.sleep(1000 + random.nextInt(1000));
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+}
+````
+La clase ``Provider`` representa a un proveedor que, en el contexto de la simulación concurrente de la fiesta, se encarga de recargar los barriles de cerveza cuando hay capacidad disponible. Esta clase extiende Thread, lo que permite ejecutar múltiples proveedores en paralelo de forma autónoma.
+
+Cada instancia de ``Provider`` tiene una referencia al objeto Barrels, que gestiona el estado de los barriles compartidos, y un generador de números aleatorios (Random) para simular decisiones y tiempos variables. Además, cada proveedor recibe un identificador único que se utiliza para establecer su nombre de hilo (setName("Proveedor " + id)), facilitando la trazabilidad de su actividad en consola.
+
+El comportamiento principal está definido en el método run, que ejecuta un ciclo mientras el hilo no sea interrumpido. En cada iteración:
+
+1. Sincroniza sobre el objeto barrels para garantizar exclusión mutua con otros hilos consumidores o productores.
+
+2. Comprueba si hay capacidad disponible en los barriles usando ``hasAvailableCapacity()``. Si no hay espacio, entra en estado de espera (wait) hasta que otro hilo (como un estudiante) consuma cerveza y libere capacidad.
+
+3. Luego, identifica qué barriles se pueden recargar directamente (solamente "A" y "C", ya que "B" no se puede recargar directamente). Si alguno de ellos tiene capacidad disponible, selecciona uno de forma aleatoria.
+
+4. Calcula una cantidad aleatoria a recargar, desde 1 hasta el 150% de la capacidad del barril elegido (simulando que algunos proveedores podrían intentar sobrecargar).
+
+5. Llama al método ``rechargeBarrel``, el cual maneja internamente el desbordamiento y transferencia de exceso según la lógica definida en ``Barrels``.
+
+6. Después de recargar, notifica a otros hilos (``notifyAll``) para que estudiantes o proveedores puedan continuar sus operaciones si estaban en espera.
+
+7. Finalmente, duerme entre 1 y 2 segundos antes de iniciar otra ronda, simulando un tiempo de espera realista entre recargas.
+
+En caso de que el hilo sea interrumpido en cualquier momento, el Provider termina su ejecución limpiamente, respetando el control del ciclo y el uso de ``Thread.interrupt()`` para una finalización segura.
+
+Esta clase modela un productor en el clásico problema productor-consumidor, actuando de forma coordinada con los estudiantes (consumidores) y manteniendo la integridad del sistema mediante sincronización y comunicación con ``wait`` y ``notifyAll``.
+
