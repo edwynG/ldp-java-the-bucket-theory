@@ -47,7 +47,7 @@ public class Main {
                     if (type.equalsIgnoreCase("Estudiantes")) {
                         numStudents = count;
                     } else if (type.equalsIgnoreCase("Proveedores")) {
-                        numProviders = count;
+                        numProviders = count > 0 ? count : 0; // Asegurarse de que sea al menos 0
                     }
                 }
             }
@@ -78,8 +78,11 @@ public class Main {
             System.err.println("Debe haber exactamente 3 barriles.");
             return;
         }
-
+        
         Barrel[] barrelsArray = barrels.toArray(new Barrel[0]);
+        Utils.overflowFromA(barrelsArray);
+        Utils.overflowFromC(barrelsArray);
+        Utils.overflowFromB(barrelsArray);
         Barrels monitor = new Barrels(barrelsArray);
 
         System.out.println("Estado inicial de los barriles");
@@ -91,7 +94,7 @@ public class Main {
 
         List<Thread> threads = new ArrayList<>();
         int estudiantesValidos = 0;
-        
+
         for (int i = 0; i < numStudents; i++) {
             int edad = 16 + (i % 10);
             int tickets = 5 + (i % 6);
@@ -101,22 +104,21 @@ public class Main {
                 s.start();
                 estudiantesValidos++;
             } else {
-                System.out.println("Estudiante " + (i + 1) + " no es válido para participar. (Edad: " + edad + ", Tickets: " + tickets + ")");
+                System.out.println("Estudiante " + (i + 1) + " no es válido para participar. (Edad: " + edad
+                        + ", Tickets: " + tickets + ")");
             }
         }
-        
+
         if (estudiantesValidos == 0) {
             System.out.println("\n No hay estudiantes válidos para la fiesta. Se cancela el evento.");
             return;
         }
-        
 
         for (int i = 0; i < numProviders; i++) {
             Provider p = new Provider(monitor, i + 1); // ID del proveedor (empezando desde 1)
             threads.add(p);
             p.start();
         }
-        
 
         for (Thread t : threads) {
             if (t instanceof Student) {

@@ -8,13 +8,13 @@ public class Barrel {
             throw new IllegalArgumentException("El ID del barril no puede ser nulo o vacío.");
         }
         if (capacity < 1) {
-            throw new IllegalArgumentException("La capacidad del barril debe ser al menos" + id + ".");
+            throw new IllegalArgumentException("Barril " + "C" + " - La capacidad del barril debe ser al menos 1");
         }
 
         this.id = id;
         this.capacity = capacity;
-        this.currentAmount = Math.min(Math.max(initialAmount, 0), capacity); // Asegura que el monto inicial no exceda
-                                                                             // la capacidad
+        this.currentAmount = Math.max(initialAmount, 0);
+                                                                          
     }
 
     public synchronized int withdraw(int requestedAmount) {
@@ -51,5 +51,12 @@ public class Barrel {
 
     public int getCapacity() {
         return capacity;
+    }
+
+    public void setCurrentAmount(int amount) {
+        if (amount < 0 || amount > capacity) {
+            throw new IllegalArgumentException("La cantidad debe estar entre 0 y la capacidad del barril.");
+        }
+        this.currentAmount = amount;
     }
 }

@@ -21,14 +21,18 @@ public class Barrels {
             }
         }
         flagWithdraw = true; // Indica que se está retirando
-        Utils.printMessage("Retirando " + amount + " unidades del barril " + barrelId);
         for (Barrel barrel : barrels) {
             if (barrel.getId().equals(barrelId)) {
-                Utils.sleepSeconds(3 + (int) (Math.random() * 3)); // Simula un tiempo de recarga aleatorio entre 3 y 5
-                                                                   // segundos
-                flagWithdraw = false; // Indica que ya no se está retirando
-                notify(); // Notifica a otros hilos que pueden continuar
-                return barrel.withdraw(amount);
+                if (barrel.getCurrentAmount() > 0) {
+                    Utils.sleepSeconds(3 + (int) (Math.random() * 3)); // Simula un tiempo de recarga aleatorio entre 3 y 5 segundos
+                    flagWithdraw = false; // Indica que ya no se está retirando
+                    notify(); // Notifica a otros hilos que pueden continuar
+                    return barrel.withdraw(amount);
+                }else {
+                    flagWithdraw = false; // Indica que ya no se está retirando
+                    notify(); // Notifica a otros hilos que pueden continuar
+                    return 0; // No hay cerveza para retirar
+                }
             }
         }
         throw new IllegalArgumentException("Barril no encontrado: " + barrelId);
@@ -48,7 +52,6 @@ public class Barrels {
 
         }
         flagRecharge = true; // Indica que se está recargando
-        Utils.printMessage("Recargando barril " + barrelId + " con " + amount + " unidades.");
         for (Barrel barrel : barrels) {
             if (barrel.getId().equals(barrelId)) {
                 int before = barrel.getCurrentAmount();
@@ -58,7 +61,7 @@ public class Barrels {
 
                 // Si hay desbordamiento y es A (pos 0) o C (pos 2), pasa a B (pos 1)
                 if (overflow > 0 && (barrelId.equals(barrels[0].getId()) || barrelId.equals(barrels[2].getId()))) {
-                    Utils.printMessage(
+                    System.out.println(
                             "Desbordamiento en " + barrelId + ", transfiriendo " + overflow + " unidades a B.");
                     int beforeB = barrels[1].getCurrentAmount();
                     barrels[1].recharge(overflow);
@@ -69,7 +72,7 @@ public class Barrels {
                     if (overflowB > 0) {
                         int idxA = 0, idxC = 2;
                         int minIdx = barrels[idxA].getCurrentAmount() <= barrels[idxC].getCurrentAmount() ? idxA : idxC;
-                        Utils.printMessage("Desbordamiento en B, transfiriendo " + overflowB + " unidades a "
+                       System.out.println("Desbordamiento en B, transfiriendo " + overflowB + " unidades a "
                                 + barrels[minIdx].getId() + ".");
                         int beforeMin = barrels[minIdx].getCurrentAmount();
                         barrels[minIdx].recharge(overflowB);
@@ -77,7 +80,7 @@ public class Barrels {
                         int lost = (beforeMin + overflowB) - afterMin;
                         if (lost > 0) {
                             lostBeer += lost;
-                            Utils.printMessage("Cerveza perdida: " + lost + " unidades.");
+                           System.out.println("Cerveza perdida: " + lost + " unidades.");
                         }
                     }
                 }
