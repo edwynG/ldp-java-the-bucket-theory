@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Random;
 
 public class Main {
     private static  int numStudents = 0; // Número total de estudiantes
@@ -16,20 +17,23 @@ public class Main {
         Barrel[] barrelsArray = new Barrel[3];
         entryFromFile(args, barrelsArray);
         Barrels monitor = new Barrels(barrelsArray);
-
+    
         System.out.println("Estado inicial de los barriles");
         for (Barrel barrel : barrelsArray) {
             System.out.println("ID: " + barrel.getId() +
                     ", Cantidad: " + barrel.getCurrentAmount() +
                     ", Capacidad: " + barrel.getCapacity());
         }
-
+    
         List<Thread> threads = new ArrayList<>();
         int estudiantesValidos = 0;
+        Random random = new Random();
 
         for (int i = 0; i < numStudents; i++) {
-            int edad = 16 + (i % 10);
-            int tickets = 5 + (i % 6);
+            int edad = 16 + random.nextInt(35);      
+            int tickets = 1 + random.nextInt(15);      
+
+        
             if (edad >= 18 && tickets > 0) {
                 Student s = new Student("Estudiante " + (i + 1), edad, tickets, monitor);
                 threads.add(s);
@@ -40,18 +44,19 @@ public class Main {
                         + ", Tickets: " + tickets + ")");
             }
         }
-
+    
         if (estudiantesValidos == 0) {
-            System.out.println("\n No hay estudiantes válidos para la fiesta. Se cancela el evento.");
+            System.out.println("\nNo hay estudiantes válidos para la fiesta. Se cancela el evento.");
             return;
         }
-
+    
         for (int i = 0; i < numProviders; i++) {
             Provider p = new Provider(monitor, i + 1); // ID del proveedor (empezando desde 1)
             threads.add(p);
             p.start();
         }
-
+    
+        // Esperar a que los estudiantes terminen
         for (Thread t : threads) {
             if (t instanceof Student) {
                 try {
@@ -59,19 +64,27 @@ public class Main {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
-            } else {
+            }
+        }
+    
+        // Interrumpimos solo los proveedores que aún siguen vivos
+        for (Thread t : threads) {
+            if (t instanceof Provider && t.isAlive()) {
                 t.interrupt();
             }
         }
-
-        System.out.println("\nFiesta finalizada");
+    
+        System.out.println("Todos los estudiantes se quedaron sin tickets.");
+        System.out.println("Fiesta finalizada");
+    
         for (Barrel barrel : barrelsArray) {
             System.out.println("ID: " + barrel.getId() +
                     ", Cantidad final: " + barrel.getCurrentAmount());
         }
-
+    
         System.out.println("Total de cerveza perdida por desbordamiento: " + monitor.getLostBeer() + " unidades.");
     }
+    
 
     public static void entryFromFile(String[] args, Barrel[] barrelsArray) {
          if (args.length < 1) {
