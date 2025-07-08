@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Productor
+// Productor
 class Provider extends Thread {
     private final Barrels barrels;
     private final Random random = new Random();
@@ -32,9 +33,10 @@ class Provider extends Thread {
                         if (Thread.currentThread().isInterrupted()) return;
 
                         String idBarrel = targets.get(random.nextInt(targets.size()));
-                        int amount = 5 + random.nextInt(6);
-
-                        System.out.println(getName() + " va a recargar " + amount + " unidades en " + idBarrel);
+                        Barrel barrel = barrels.getBarrel(idBarrel);
+                        int maxTheoretical = (int) Math.ceil(barrel.getCapacity() * 1.5);
+                        int amount = 1 + random.nextInt(maxTheoretical);
+                        
 
                         barrels.rechargeBarrel(idBarrel, amount);
                     }
