@@ -317,6 +317,7 @@ Luego de cada intento exitoso o fallido, espera entre 0.5 y 1 segundo antes de v
 Cuando el estudiante ha usado todos sus tickets, imprime un mensaje indicando que se retira de la fiesta.
 Esta clase ilustra un comportamiento típico de consumidores en un entorno concurrente, donde varios hilos compiten por un recurso compartido. La combinación de wait y notify en el objeto Barrels permite una cooperación fluida entre los estudiantes y los productores (proveedores de cerveza) en la simulación, evitando el uso ineficiente de la CPU por espera activa.
 
+### Proceso - proveedores
 ````
 class Provider extends Thread {
     private final Barrels barrels;
