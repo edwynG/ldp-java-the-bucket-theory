@@ -8,7 +8,7 @@ public class Barrel {
             throw new IllegalArgumentException("El ID del barril no puede ser nulo o vacío.");
         }
         if (capacity < 1) {
-            throw new IllegalArgumentException("Barril " + "C" + " - La capacidad del barril debe ser al menos 1");
+            throw new IllegalArgumentException("Barril " + id + " - La capacidad del barril debe ser al menos 1");
         }
 
         this.id = id;

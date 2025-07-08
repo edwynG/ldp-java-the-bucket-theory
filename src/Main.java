@@ -9,80 +9,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class Main {
+    private static  int numStudents = 0; // Número total de estudiantes
+    private static int numProviders = 0; // Número total de proveedores
 
     public static void main(String[] args) {
-        if (args.length < 1) {
-            System.err.println("Debe proporcionar la ruta del archivo como argumento.");
-            return;
-        }
-
-        String filePath = args[0];
-        List<Barrel> barrels = new ArrayList<>();
-        int numStudents = 0;
-        int numProviders = 0;
-
-        int lineCount = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            Map<String, Barrel> barrelMap = new HashMap<>();
-            Set<String> requiredBarrels = new HashSet<>(Arrays.asList("A", "B", "C"));
-            while ((line = br.readLine()) != null) {
-                line = line.trim();
-                if (line.isEmpty())
-                    continue;
-                lineCount++;
-                String[] parts = line.split(",");
-                if (parts.length == 3) {
-                    String name = parts[0].trim();
-                    int capacity = Integer.parseInt(parts[1].trim());
-                    int current = Integer.parseInt(parts[2].trim());
-                    if (!requiredBarrels.contains(name)) {
-                        throw new IllegalArgumentException("Barril inválido: " + name);
-                    }
-
-                    barrelMap.put(name, new Barrel(name, capacity, current));
-                } else if (parts.length == 2) {
-                    String type = parts[0].trim();
-                    int count = Integer.parseInt(parts[1].trim());
-                    if (type.equalsIgnoreCase("Estudiantes")) {
-                        numStudents = count;
-                    } else if (type.equalsIgnoreCase("Proveedores")) {
-                        numProviders = count > 0 ? count : 0; // Asegurarse de que sea al menos 0
-                    }
-                }
-            }
-            if (lineCount != 5) {
-                throw new IllegalArgumentException("El archivo debe contener exactamente 5 líneas válidas.");
-            }
-            // Validar que estén todos los barriles requeridos
-            for (String b : requiredBarrels) {
-                if (!barrelMap.containsKey(b)) {
-                    throw new IllegalArgumentException("Falta el barril: " + b);
-                }
-            }
-            barrels.add(barrelMap.get("A"));
-            barrels.add(barrelMap.get("B"));
-            barrels.add(barrelMap.get("C"));
-
-        } catch (Exception e) {
-            System.err.println("Error al leer el archivo: " + e.getMessage());
-            return;
-        }
-
-        if (numStudents <= 0) {
-            System.err.println("El número de estudiantes debe ser mayor a 0.");
-            return;
-
-        }
-        if (barrels.size() != 3) {
-            System.err.println("Debe haber exactamente 3 barriles.");
-            return;
-        }
-        
-        Barrel[] barrelsArray = barrels.toArray(new Barrel[0]);
-        Utils.overflowFromA(barrelsArray);
-        Utils.overflowFromC(barrelsArray);
-        Utils.overflowFromB(barrelsArray);
+        Barrel[] barrelsArray = new Barrel[3];
+        entryFromFile(args, barrelsArray);
         Barrels monitor = new Barrels(barrelsArray);
 
         System.out.println("Estado inicial de los barriles");
@@ -140,4 +72,81 @@ public class Main {
 
         System.out.println("Total de cerveza perdida por desbordamiento: " + monitor.getLostBeer() + " unidades.");
     }
+
+    public static void entryFromFile(String[] args, Barrel[] barrelsArray) {
+         if (args.length < 1) {
+            System.err.println("Debe proporcionar la ruta del archivo como argumento.");
+            System.exit(1);
+        }
+
+        String filePath = args[0];
+        List<Barrel> barrels = new ArrayList<>();
+
+        int lineCount = 0;
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            Map<String, Barrel> barrelMap = new HashMap<>();
+            Set<String> requiredBarrels = new HashSet<>(Arrays.asList("A", "B", "C"));
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty())
+                    continue;
+                lineCount++;
+                String[] parts = line.split(",");
+                if (parts.length == 3) {
+                    String name = parts[0].trim();
+                    int capacity = Integer.parseInt(parts[1].trim());
+                    int current = Integer.parseInt(parts[2].trim());
+                    if (!requiredBarrels.contains(name)) {
+                        throw new IllegalArgumentException("Barril inválido: " + name);
+                    }
+
+                    barrelMap.put(name, new Barrel(name, capacity, current));
+                } else if (parts.length == 2) {
+                    String type = parts[0].trim();
+                    int count = Integer.parseInt(parts[1].trim());
+                    if (type.equalsIgnoreCase("Estudiantes")) {
+                        numStudents = count;
+                    } else if (type.equalsIgnoreCase("Proveedores")) {
+                        numProviders = count > 0 ? count : 0; // Asegurarse de que sea al menos 0
+                    }
+                }
+            }
+            if (lineCount != 5) {
+                throw new IllegalArgumentException("El archivo debe contener exactamente 5 líneas válidas.");
+            }
+            // Validar que estén todos los barriles requeridos
+            for (String b : requiredBarrels) {
+                if (!barrelMap.containsKey(b)) {
+                    throw new IllegalArgumentException("Falta el barril: " + b);
+                }
+            }
+            barrels.add(barrelMap.get("A"));
+            barrels.add(barrelMap.get("B"));
+            barrels.add(barrelMap.get("C"));
+
+        } catch (Exception e) {
+            System.err.println("Error al leer el archivo: " + e.getMessage());
+            System.exit(1);
+        }
+
+        if (numStudents <= 0) {
+            System.err.println("El número de estudiantes debe ser mayor a 0.");
+            System.exit(1);
+
+        }
+        if (barrels.size() != 3) {
+            System.err.println("Debe haber exactamente 3 barriles.");
+            System.exit(1);
+        }
+        
+        Barrel[] arr = barrels.toArray(new Barrel[0]);
+        Utils.overflowFromA(arr);
+        Utils.overflowFromC(arr);
+        Utils.overflowFromB(arr);
+        for (int i = 0; i < barrelsArray.length; i++) {
+            barrelsArray[i] = arr[i];
+        }
+    }
+
 }
