@@ -1,0 +1,5 @@
+A,20,10
+B,15,5
+C,25,12
+Estudiantes,2
+Proveedores,1

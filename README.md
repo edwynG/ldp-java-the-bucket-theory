@@ -426,3 +426,63 @@ El comportamiento principal se encuentra en el método ``run()``, que se ejecuta
 - Luego de cada intento de recarga, el proveedor espera entre 1 y 2 segundos ``(Thread.sleep)`` antes de iniciar una nueva iteración, simulando un intervalo entre cargas.
 - Si el hilo es interrumpido en cualquier momento (ya sea mientras trabaja o duerme), atrapa la excepción ``InterruptedException``, marca el hilo como interrumpido nuevamente y finaliza de forma limpia.
 
+### Explicación de la salida 
+
+A,50,30
+B,40,10
+C,60,20
+Estudiantes,5
+Proveedores,2
+
+Suponiendo este caso de prueba cuando se ejecuta el programa se vera lo siguiente: 
+
+Estado inicial de los barriles  
+ID: A, Cantidad: 30, Capacidad: 50  
+ID: B, Cantidad: 10, Capacidad: 40  
+ID: C, Cantidad: 20, Capacidad: 60  
+Esto indica que los barriles se han leído correctamente del archivo y que ya tienen una cantidad inicial de cerveza.
+
+Si hay estudiantes que son menores de edad tambien se muestra en la impresion de esta manera:  
+Estudiante 1 (Edad: 17, Tickets: 5) no es válido para participar.
+
+Si el estudiante es valido se muestra de la siguiente manera: 
+Estudiante 2 (Edad: 21) retiró 3 cerveza(s) del barril B. Tickets restantes: 9 
+
+Si hay espacio en los barriles entonces el proveedor puede recargarlo, tambien si se estan vaciando los recarga, y si existe desborde se muestra en la salida, reportando la cantidad de cerveza perdida. 
+
+Proveedor 1 va a recargar 71 unidades en A  
+Desbordamiento en A, transfiriendo 51 unidades a B.  
+Desbordamiento en B, transfiriendo 21 unidades a C.  
+Cerveza perdida: 5 unidades.  
+
+Proveedor 2 va a recargar 40 unidades en C  
+Desbordamiento en C, transfiriendo 10 unidades a B.  
+
+La simulacion completa se veria de la siguiente forma: 
+Estudiante 3 (Edad: 25) retiró 4 cerveza(s) del barril C. Tickets restantes: 3  
+Proveedor 1 va a recargar 89 unidades en A  
+Desbordamiento en A, transfiriendo 59 unidades a B.  
+Desbordamiento en B, transfiriendo 19 unidades a C.  
+Cerveza perdida: 3 unidades.  
+
+Todo esto ocurre mientras los hilos se ejecutan de forma concurrente, creando una fiesta bien sincronizada.
+
+Cuando todos los estudiantes se quedan sin tickets, el sistema imprime:
+
+Estudiante 2 se retira sin tickets.  
+Estudiante 3 se retira sin tickets.  
+Estudiante 5 se retira sin tickets.  
+Todos los estudiantes se quedaron sin tickets.  
+Fiesta finalizada
+
+Los proveedores son interrumpidos automáticamente para que el programa finalice sin dejar hilos colgados.
+
+Finalmente, se imprime el estado final de los barriles y la cantidad de cerveza perdida:
+ID: A, Cantidad final: 45  
+ID: B, Cantidad final: 40  
+ID: C, Cantidad final: 51  
+Total de cerveza perdida por desbordamiento: 8 unidades.
+
+Este programa simula una dinámica realista de productor-consumidor usando Threads, wait() y notifyAll() para sincronizar a múltiples hilos (estudiantes y proveedores) que comparten recursos limitados (barriles).
+
+Se colocaron 4 casos de prueba en donde 3 de ellos son simulacion de la fiesta y 1 es una entrada invalida. 
