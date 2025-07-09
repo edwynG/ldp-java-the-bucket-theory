@@ -1,5 +1,5 @@
 import java.util.Random;
-
+//Consumidor
 class Student extends Thread {
     private final String nombre;
     private final int edad;

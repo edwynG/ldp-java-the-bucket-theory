@@ -3,7 +3,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Productor
-// Productor
 class Provider extends Thread {
     private final Barrels barrels;
     private final Random random = new Random();
