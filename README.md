@@ -157,8 +157,7 @@ La función ``entryFromFile`` recibe como parámetros los argumentos de línea d
 
 ### Monitor - barriles
 ```{java}
-// Monitor
-public class Barrels {
+class Barrels {
     private Barrel[] barrels;
     private boolean flagRecharge = false;
     private boolean flagWithdraw = false;
@@ -183,13 +182,14 @@ public class Barrels {
         for (Barrel barrel : barrels) {
             if (barrel.getId().equals(barrelId)) {
                 if (barrel.getCurrentAmount() > 0) {
-                    Utils.sleepSeconds(3 + (int) (Math.random() * 3)); // Simula un tiempo de recarga aleatorio entre 3 y 5 segundos
+                    Utils.sleepSeconds(3 + (int) (Math.random() * 3)); // Simula un tiempo de recarga aleatorio entre 3
+                                                                       // y 5 segundos
                     flagWithdraw = false; // Indica que ya no se está retirando
                     notify(); // Notifica a otros hilos que pueden continuar
                     return barrel.withdraw(amount);
-                }else {
+                } else {
                     flagWithdraw = false; // Indica que ya no se está retirando
-                    notify(); // Notifica a otros hilos que pueden continuar
+                    notifyAll(); // Notifica a otros hilos que pueden continuar
                     return 0; // No hay cerveza para retirar
                 }
             }
@@ -210,7 +210,13 @@ public class Barrels {
             }
 
         }
+        if (Thread.currentThread().isInterrupted()) {
+        return; // o lanzar una excepción, o limpiar recursos
+        }
+
         flagRecharge = true; // Indica que se está recargando
+        System.out.println(Thread.currentThread().getName() + " va a recargar " + amount + " unidades en " + barrelId);
+
         for (Barrel barrel : barrels) {
             if (barrel.getId().equals(barrelId)) {
                 int before = barrel.getCurrentAmount();
@@ -231,7 +237,7 @@ public class Barrels {
                     if (overflowB > 0) {
                         int idxA = 0, idxC = 2;
                         int minIdx = barrels[idxA].getCurrentAmount() <= barrels[idxC].getCurrentAmount() ? idxA : idxC;
-                       System.out.println("Desbordamiento en B, transfiriendo " + overflowB + " unidades a "
+                        System.out.println("Desbordamiento en B, transfiriendo " + overflowB + " unidades a "
                                 + barrels[minIdx].getId() + ".");
                         int beforeMin = barrels[minIdx].getCurrentAmount();
                         barrels[minIdx].recharge(overflowB);
@@ -239,13 +245,14 @@ public class Barrels {
                         int lost = (beforeMin + overflowB) - afterMin;
                         if (lost > 0) {
                             lostBeer += lost;
-                           System.out.println("Cerveza perdida: " + lost + " unidades.");
+                            System.out.println("Cerveza perdida: " + lost + " unidades.");
                         }
                     }
                 }
-                Utils.sleepSeconds(3 + (int) (Math.random() * 3)); // Simula un tiempo de recarga aleatorio entre 3 y 5 segundos
+                Utils.sleepSeconds(3 + (int) (Math.random() * 3)); // Simula un tiempo de recarga aleatorio entre 3 y 5
+                                                                   // segundos
                 flagRecharge = false; // Indica que ya no se está recargando
-                notify();
+                notifyAll();
                 return;
             }
         }
