@@ -17,10 +17,8 @@ class Provider extends Thread {
     public void run() {
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                synchronized (barrels) {
+              
                     while (!barrels.hasAvailableCapacity()) {
-                        barrels.wait();
-
                         // Si fue interrumpido durante la espera, salir inmediatamente
                         if (Thread.currentThread().isInterrupted()) return;
                     }
@@ -36,14 +34,10 @@ class Provider extends Thread {
                         Barrel barrel = barrels.getBarrel(idBarrel);
                         int maxTheoretical = (int) Math.ceil(barrel.getCapacity() * 1.5);
                         int amount = 1 + random.nextInt(maxTheoretical);
-                        
-
                         barrels.rechargeBarrel(idBarrel, amount);
                     }
 
-                    barrels.notifyAll();
-                }
-
+                
                 Thread.sleep(1000 + random.nextInt(1000));
             }
         } catch (InterruptedException e) {

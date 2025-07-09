@@ -28,10 +28,6 @@ class Student extends Thread {
                 if (obtained > 0) {
                     tickets -= obtained;
                     System.out.println(nombre + " (Edad: " + edad + ") retiró " + obtained + " cerveza(s) del barril " + barrelId + ". Tickets restantes: " + tickets);
-                } else {
-                    synchronized (barrels) {
-                        barrels.wait(); // Espera si no pudo retirar nada
-                    }
                 }
 
                 Thread.sleep(500 + random.nextInt(500)); // Simula el tiempo entre rondas
